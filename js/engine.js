@@ -198,9 +198,10 @@ function initHomeLoader(next) {
       ranHomeLoader = true;
       gsap.set(wrap, { display: 'none' });
       lenis.start();
-      if (vid) { try { vid.currentTime = 0; vid.play(); } catch (e) {} }
+      playHeroWhenReady(vid);
     }
   });
+  if (vid) vid.load();   // start buffering now, under the intro
   const last = slides[slides.length - 1];
   tl.set([frame, bar], { autoAlpha: 1 })
     .to(bar, { scaleX: 1, duration: 4.2, ease: 'none' }, 0);
@@ -263,7 +264,17 @@ function initHomeHero(next) {
     vid.muted = on; toggle.setAttribute('data-sound-toggle', on ? 'off' : 'on');
     toggle.querySelector('span').textContent = on ? 'Sound off' : 'Sound on';
   });
-  if (ranHomeLoader && vid) { try { vid.play(); } catch (e) {} }
+  if (ranHomeLoader) playHeroWhenReady(vid);
+}
+/* play only once enough is buffered to run without stalling (or after 1.5s regardless) */
+function playHeroWhenReady(vid) {
+  if (!vid) return;
+  const go = () => { try { vid.play(); } catch (e) {} };
+  if (vid.readyState >= 4) return go();
+  let done = false;
+  const once = () => { if (!done) { done = true; go(); } };
+  vid.addEventListener('canplaythrough', once, { once: true });
+  setTimeout(once, 1500);
 }
 
 /* Home gallery grid rises into place as you scroll */
