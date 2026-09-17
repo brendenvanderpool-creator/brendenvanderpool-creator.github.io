@@ -8,7 +8,7 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let isMobile = window.innerWidth < 550;
 let isMobileLandscape = window.innerWidth < 768;
 let isTablet = window.innerWidth < 992;
-let ranHomeLoader = sessionStorage.getItem('bv-loaded') === '1';
+let ranHomeLoader = false;   // in-memory only: every full reload replays the intro, in-app navigation does not
 
 CustomEase.create('main', '0.65, 0.01, 0.05, 0.99');
 CustomEase.create('load', '0.7, 0, 0.2, 1');
@@ -192,36 +192,45 @@ function initHomeLoader(next) {
   gsap.set(eyebrow, { autoAlpha: 0 });
 
   const tl = gsap.timeline({
+    paused: true,
     defaults: { duration: 0.75 },
     onComplete: () => {
-      ranHomeLoader = true; sessionStorage.setItem('bv-loaded', '1');
+      ranHomeLoader = true;
       gsap.set(wrap, { display: 'none' });
       lenis.start();
       if (vid) { try { vid.currentTime = 0; vid.play(); } catch (e) {} }
     }
   });
-  tl.set([frame, nameEl, tag, bar], { autoAlpha: 1 })
-    .from(nameSplit.chars, { yPercent: gsap.utils.wrap([-130, 130]), stagger: 0.03 })
-    .from(tagSplit.lines, { yPercent: 100, autoAlpha: 0, stagger: 0.1 }, '<')
-    .to(bar, { scaleX: 1, duration: 3.6, ease: 'none' }, '<');
-  slides.forEach((s, i) => {
-    tl.to(s, { clipPath: 'inset(0% 0 0 0)', duration: 0.75 }, i === 0 ? '<' : '<+=0.72')
-      .fromTo(s.querySelector('img'), { scale: 1.18 }, { scale: 1.02, duration: 0.9 }, '<');
+  const last = slides[slides.length - 1];
+  tl.set([frame, bar], { autoAlpha: 1 })
+    .to(bar, { scaleX: 1, duration: 4.2, ease: 'none' }, 0);
+  // the photos slide up one after another, each settling from a slight zoom
+  slides.forEach((sl, i) => {
+    tl.to(sl, { clipPath: 'inset(0% 0 0 0)', duration: 0.7 }, i === 0 ? 0.15 : '<+=0.62')
+      .fromTo(sl.querySelector('img'), { scale: 1.18 }, { scale: 1.02, duration: 0.85 }, '<');
   });
-  tl.to(nameSplit.chars, { yPercent: gsap.utils.wrap([-130, 130]), duration: 0.6, stagger: { from: 'center', each: 0.02 } }, '>-=0.35')
-    .to(tagSplit.lines, { yPercent: -100, autoAlpha: 0, duration: 0.5 }, '<')
-    .to(frame, { scale: 1.06, duration: 0.8 }, '<')
-    .to(frame, { clipPath: 'inset(0% 0 100% 0)', duration: 0.8 }, '<+=0.2')
+  // boom: the last frame (the portrait) grows to fill the screen
+  tl.add(() => wrap.classList.add('is-boom'))
+    .to(frame, { width: '100vw', height: '100vh', duration: 0.9, ease: 'load' }, '>-=0.1')
+    .to(last.querySelector('img'), { scale: 1.12, duration: 1.2 }, '<')
+    // the name rises over the face
+    .set([nameEl, tag], { autoAlpha: 1 }, '<+=0.3')
+    .from(nameSplit.chars, { yPercent: 120, stagger: 0.03, duration: 0.7 }, '<')
+    .from(tagSplit.lines, { yPercent: 100, autoAlpha: 0, duration: 0.6 }, '<+=0.25')
+    .to({}, { duration: 0.6 })
+    // then everything lifts off to reveal the cutout hero
+    .to(nameSplit.chars, { yPercent: -120, duration: 0.5, stagger: { from: 'center', each: 0.015 } })
+    .to(tagSplit.lines, { yPercent: -100, autoAlpha: 0, duration: 0.4 }, '<')
     .to(wrap, {
-      scaleY: 0, duration: 1, transformOrigin: 'top center',
-      onStart: () => {
-        gsap.set(bar, { transformOrigin: 'right center' });
-        gsap.fromTo(navLogo, { yPercent: -120 }, { yPercent: 0, duration: 0.8 });
-      }
-    }, '<+=0.4')
-    .to(bar, { scaleX: 0, duration: 0.6 }, '<')
-    .to(heroWords, { yPercent: 0, stagger: 0.06, duration: 0.8 }, '<+=0.1')
+      yPercent: -100, duration: 1, ease: 'load',
+      onStart: () => { gsap.fromTo(navLogo, { yPercent: -120 }, { yPercent: 0, duration: 0.8, delay: 0.5 }); }
+    }, '<+=0.1')
+    .to(bar, { scaleX: 0, duration: 0.5 }, '<')
+    .to(heroWords, { yPercent: 0, stagger: 0.06, duration: 0.8 }, '<+=0.35')
     .to(eyebrow, { autoAlpha: 1, duration: 0.8 }, '<+=0.2');
+  // don't start until the five photos are actually decoded (or 2.5s, whichever first)
+  const decoded = Promise.all(slides.map(sl => { const im = sl.querySelector('img'); return im.decode ? im.decode().catch(() => {}) : Promise.resolve(); }));
+  Promise.race([decoded, new Promise(r => setTimeout(r, 2500))]).then(() => tl.play());
 }
 
 /* Cutout hero: name knocked out of the cream cover, video plays through the letters,
@@ -343,10 +352,17 @@ function initAboutHero(next) {
     return tl;
   });
   const cover = hero.querySelector('.about-cover');
+  const imgBox = hero.querySelector('.about-hero__img');
+  const img = imgBox.querySelector('img');
+  // start with the portrait filling the screen, then let it shrink into place
+  imgBox.classList.add('is-full');
+  const state = Flip.getState(imgBox);
+  imgBox.classList.remove('is-full');
+  gsap.set(cover, { clipPath: 'inset(0 0 100% 0)' });
   gsap.timeline({ defaults: { duration: 1.25 }, onComplete: () => tls.forEach(t => t.play()) })
-    .from(q(hero, '.about-line'), { yPercent: 120, stagger: 0.08 }, 0.2)
-    .to(cover, { clipPath: isMobile ? 'inset(0 0 100% 0)' : 'inset(0 0 0 100%)' }, '<')
-    .from(hero.querySelector('.about-hero__img'), { scale: 1.2 }, '<');
+    .add(Flip.from(state, { duration: 1.5, ease: 'load', absolute: true }), 0.35)
+    .fromTo(img, { scale: 1.25 }, { scale: 1, duration: 1.6 }, 0.35)
+    .from(q(hero, '.about-line'), { yPercent: 120, stagger: 0.08 }, 0.9);
   ScrollTrigger.create({ trigger: hero, start: 'top top', end: 'bottom top', onLeave: () => tls.forEach(t => t.pause()), onEnterBack: () => tls.forEach(t => t.play()) });
 }
 function initAboutDrag(next) {
