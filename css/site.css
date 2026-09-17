@@ -148,8 +148,14 @@ body.menu-open .menu{display:flex}
 .accl-sub{margin-top:64px;border-top:1px solid var(--line);padding-top:36px;display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:start}
 @media(max-width:820px){.accl-sub{grid-template-columns:1fr}}
 .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
-.stat{background:var(--bg);padding:22px 18px}
-.stat .n{font-family:var(--display);font-size:clamp(34px,4vw,60px);line-height:.9;font-variant-numeric:tabular-nums}
+@media(max-width:560px){.stat-row{grid-template-columns:repeat(2,1fr)}}
+.stat{position:relative;overflow:hidden;background:var(--bg);padding:26px 20px;cursor:default;transition:transform .35s cubic-bezier(.65,.01,.05,.99),box-shadow .35s}
+.stat::before{content:"";position:absolute;inset:0;opacity:0;transition:opacity .45s;background:linear-gradient(135deg,var(--accent),var(--gold))}
+.stat>*{position:relative}
+.stat:hover{transform:translateY(-5px);box-shadow:0 22px 44px rgba(0,0,0,.12)}
+.stat:hover::before{opacity:.18}
+.stat:hover .n{color:var(--accent)}
+.stat .n{font-family:var(--display);font-size:clamp(34px,4vw,60px);line-height:.9;font-variant-numeric:tabular-nums;transition:color .3s}
 .stat .l{margin-top:10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 
 /* father card */
