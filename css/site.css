@@ -259,8 +259,8 @@ body.menu-open .menu{display:flex}
 .bio-block:nth-child(even) .bio-img{order:2}
 .bio-img{position:relative;overflow:hidden;aspect-ratio:4/5;background:var(--bg2);min-height:min(70vh,640px)}
 .bio-img.landscape{aspect-ratio:3/2;min-height:min(60vh,560px)}
-.bleed{position:relative;height:min(92vh,880px);overflow:hidden;background:var(--dark)}
-.bleed img{width:100%;height:120%;object-fit:cover;object-position:center 30%}
+.bleed{position:relative;aspect-ratio:3/2;max-height:92vh;overflow:hidden;background:var(--dark)}
+.bleed img{width:100%;height:112%;object-fit:cover;object-position:center 40%}
 .bleed .bleed-copy{position:absolute;left:var(--gutter);bottom:clamp(28px,5vw,64px);color:#fff;z-index:2;max-width:30ch}
 .bleed .bleed-copy .display{font-size:clamp(40px,7vw,110px);text-shadow:0 12px 40px rgba(0,0,0,.5)}
 .bleed .bleed-copy .eyebrow{color:#fff}.bleed .bleed-copy .eyebrow::before{background:var(--gold)}
