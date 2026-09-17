@@ -155,6 +155,7 @@ function markActiveNav(ns) {
 
 /* ---------- Standard page load (every page except the first home visit) ---------- */
 function initPageLoad(next) {
+  ranHomeLoader = true;
   const hero = next.querySelector('.page-hero');
   if (!hero) return;
   const lines = q(hero, '[data-load="line"]');
@@ -376,6 +377,14 @@ function initAboutHero(next) {
     .from(q(hero, '.about-line'), { yPercent: 120, stagger: 0.08 }, 0.9);
   ScrollTrigger.create({ trigger: hero, start: 'top top', end: 'bottom top', onLeave: () => tls.forEach(t => t.pause()), onEnterBack: () => tls.forEach(t => t.play()) });
 }
+function initAchHover(next) {
+  q(next, '.ach').forEach(card => {
+    const im = card.querySelector('.ach-img'); if (!im) return;
+    const xTo = gsap.quickTo(im, 'x', { duration: 0.6, ease: 'power3' }), yTo = gsap.quickTo(im, 'y', { duration: 0.6, ease: 'power3' });
+    card.addEventListener('pointermove', e => { const r = card.getBoundingClientRect(); xTo((e.clientX - r.left - r.width / 2) * 0.12); yTo((e.clientY - r.top - r.height / 2) * 0.12); });
+    card.addEventListener('pointerleave', () => { xTo(0); yTo(0); });
+  });
+}
 function initAboutDrag(next) {
   const grid = next.querySelector('.achievements-grid');
   if (!grid) return;
@@ -512,7 +521,7 @@ function initGeneral(next) {
 const views = {
   home(next) { if (!ranHomeLoader && !REDUCED) initHomeLoader(next); else { gsap.set('.load-w', { display: 'none' }); initPageLoad(next); } initHomeHero(next); if (!isMobile) initHomeGallery(next); },
   journey(next) { initPageLoad(next); initJourney(next); },
-  about(next) { initAboutHero(next); initAboutDrag(next); },
+  about(next) { initAboutHero(next); initAboutDrag(next); initAchHover(next); },
   gallery(next) { initPageLoad(next); initGalleryLoad(next); initDragContainer(next); initGalleryFilters(next); },
   press(next) { initPageLoad(next); initPress(next); },
   road(next) { initPageLoad(next); }
@@ -520,6 +529,7 @@ const views = {
 
 function boot(container) {
   const ns = container.getAttribute('data-barba-namespace');
+  if (ns !== 'home') ranHomeLoader = true;   // Alaba: once any inner page has loaded, Barba-ing home skips the intro
   markActiveNav(ns);
   initGeneral(container);
   if (views[ns]) views[ns](container);
@@ -548,6 +558,7 @@ barba.hooks.afterEnter(data => {
 });
 const startBarba = () => barba.init({
   preventRunning: true,
+  timeout: 10000,
   prevent: ({ el }) => el.hasAttribute('data-barba-prevent') || (el.getAttribute('href') || '').startsWith('#'),
   transitions: [{
     name: 'wipe', sync: false,
