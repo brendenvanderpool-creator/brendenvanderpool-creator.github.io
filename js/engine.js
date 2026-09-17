@@ -204,22 +204,28 @@ function initHomeLoader(next) {
   });
   if (vid) vid.load();   // start buffering now, under the intro
   const last = slides[slides.length - 1];
-  tl.set([frame, bar], { autoAlpha: 1 })
-    .to(bar, { scaleX: 1, duration: 4.2, ease: 'none' }, 0);
-  // the photos slide up one after another, each settling from a slight zoom
+  const stage = wrap.querySelector('.load-stage');
+  const cap = wrap.querySelector('.load-cap');
+  const capN = q(cap, '.load-cap__n'), capT = q(cap, '.load-cap__t');
+  // Alaba: the wordmark and the intro line are up from the first frame, the photos stack in behind them
+  tl.set([frame, bar, nameEl, tag, cap], { autoAlpha: 1 })
+    .to(bar, { scaleX: 1, duration: 4.4, ease: 'none' }, 0)
+    .from(nameSplit.chars, { yPercent: 120, stagger: 0.03, duration: 0.7 }, 0)
+    .from(tagSplit.lines, { yPercent: 100, autoAlpha: 0, stagger: 0.1, duration: 0.6 }, 0.25);
+  // the photos slide up one after another, each settling from a slight zoom; a small caption swaps with each
   slides.forEach((sl, i) => {
-    tl.to(sl, { clipPath: 'inset(0% 0 0 0)', duration: 0.7 }, i === 0 ? 0.15 : '<+=0.62')
-      .fromTo(sl.querySelector('img'), { scale: 1.18 }, { scale: 1.02, duration: 0.85 }, '<');
+    tl.to(sl, { clipPath: 'inset(0% 0 0 0)', duration: 0.7 }, i === 0 ? 0.3 : '<+=0.62')
+      .fromTo(sl.querySelector('img'), { scale: 1.18 }, { scale: 1.02, duration: 0.85 }, '<')
+      .fromTo([capN[i], capT[i]], { yPercent: 110, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 0.45 }, '<+=0.12');
+    if (i > 0) tl.to([capN[i - 1], capT[i - 1]], { yPercent: -110, autoAlpha: 0, duration: 0.35 }, '<');
   });
-  // boom: the last frame (the portrait) grows to fill the screen
+  // boom: the last frame (the portrait) grows to fill the screen, the name holds over the face
   tl.add(() => wrap.classList.add('is-boom'))
-    .to(frame, { width: '100vw', height: '100vh', duration: 0.9, ease: 'load' }, '>-=0.1')
+    .to([capN[capN.length - 1], capT[capT.length - 1]], { yPercent: -110, autoAlpha: 0, duration: 0.3 }, '>-=0.1')
+    .to(stage, { y: 0, duration: 0.9, ease: 'load' }, '<')
+    .to(frame, { width: '100vw', height: '100vh', duration: 0.9, ease: 'load' }, '<')
     .to(last.querySelector('img'), { scale: 1.12, duration: 1.2 }, '<')
-    // the name rises over the face
-    .set([nameEl, tag], { autoAlpha: 1 }, '<+=0.3')
-    .from(nameSplit.chars, { yPercent: 120, stagger: 0.03, duration: 0.7 }, '<')
-    .from(tagSplit.lines, { yPercent: 100, autoAlpha: 0, duration: 0.6 }, '<+=0.25')
-    .to({}, { duration: 0.6 })
+    .to({}, { duration: 0.7 })
     // then everything lifts off to reveal the cutout hero
     .to(nameSplit.chars, { yPercent: -120, duration: 0.5, stagger: { from: 'center', each: 0.015 } })
     .to(tagSplit.lines, { yPercent: -100, autoAlpha: 0, duration: 0.4 }, '<')
