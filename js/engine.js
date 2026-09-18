@@ -39,7 +39,8 @@ function runSplit(next) {
   const letterTargets = q(next, '[data-anim="letters"]');
   if (letterTargets.length) splits.push(new SplitText(letterTargets, { type: 'lines, words, chars', reduceWhiteSpace: false, charsClass: 'char', wordsClass: 'word', linesClass: 'line' }));
   const charTargets = q(next, '[data-split="letters"]');
-  if (charTargets.length) splits.push(new SplitText(charTargets, { type: 'chars', reduceWhiteSpace: false, charsClass: 'char' }));
+  // words too, so a phone wraps the footer name between BRENDEN and VANDERPOOL, never mid-word
+  if (charTargets.length) splits.push(new SplitText(charTargets, { type: 'words, chars', reduceWhiteSpace: false, charsClass: 'char', wordsClass: 'word' }));
 }
 
 /* ---------- Typography: letters rise with a 3D tilt; lines rise word by word ---------- */

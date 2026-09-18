@@ -95,7 +95,9 @@ body.menu-open .menu{display:flex}
 .footer{background:var(--dark);color:var(--cream-on-dark);padding:clamp(70px,9vw,120px) 0 40px}
 .footer .f-eyebrow{color:#8d877d;font-size:11px;letter-spacing:.3em;text-transform:uppercase;margin-bottom:22px}
 .footer-logo{font-family:var(--display);text-transform:uppercase;font-size:clamp(44px,9.6vw,150px);line-height:.9;letter-spacing:.005em;display:block;overflow:hidden;padding-bottom:.06em}
+.footer-logo .word{display:inline-block;white-space:nowrap}
 .footer-logo .char{display:inline-block;color:var(--cream-on-dark)}
+@media(max-width:600px){.footer-logo{font-size:12.5vw;line-height:.92}}
 .footer-row{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;margin-top:36px}
 .pills{display:flex;gap:12px;flex-wrap:wrap}
 .pill{display:inline-flex;align-items:center;gap:9px;text-decoration:none;border:1px solid rgba(242,239,233,.22);border-radius:60px;padding:12px 20px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;transition:background .3s,color .3s,border-color .3s,transform .3s}
