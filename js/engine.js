@@ -276,6 +276,7 @@ function initHomeHero(next) {
 /* play only once enough is buffered to run without stalling (or after 1.5s regardless) */
 function playHeroWhenReady(vid) {
   if (!vid) return;
+
   const go = () => { try { vid.play(); } catch (e) {} };
   if (vid.readyState >= 4) return go();
   let done = false;

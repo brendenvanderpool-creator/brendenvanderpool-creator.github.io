@@ -81,9 +81,15 @@
 
 <header class="home-hero">
   <div class="hero-sticky">
-    <video class="hero-video" id="heroVid" muted loop playsinline preload="auto" poster="img/hero-poster.jpg">
+    <video class="hero-video" id="heroVid" muted loop playsinline autoplay preload="auto" poster="img/hero-poster.jpg">
       <source src="media/hero.mp4" type="video/mp4">
     </video>
+    <script>
+      // phones get the 720p cut (2.6x lighter). Runs before the engine touches the video, so
+      // nothing of the 1080p file is fetched on a phone. His dad, 2026-09-17: "the videos need
+      // a little bit of work because it doesn't work on the phone".
+      (function(){ if (window.innerWidth < 768) { var v=document.getElementById('heroVid'), s=v&&v.querySelector('source'); if (s) { s.setAttribute('src','media/hero-m.mp4'); v.load(); } } })();
+    </script>
     <div class="hero-cover">
       <svg class="hero-mask" id="heroMask" preserveAspectRatio="none" aria-hidden="true">
         <defs><mask id="bvMask">
